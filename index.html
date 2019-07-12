@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AtCoderAPI</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="nav-wrapper">
+                <a href="#" class="brand-logo center">AtCoder部内ランキング</a>
+            </div>
+        </nav>
+    </header>
+    <style>
+        .mc {
+            max-width: 1200px;
+            margin: 5em auto 0 auto;
+        }
+    </style>
+    <main class="mc">
+        <div id="app">
+            <div class="">
+<!--                <button class="waves-effect waves-light btn" @click="RatedPointSort">Rated Point Sum Rank</button>-->
+<!--                <button class="waves-effect waves-light btn" @click="AcceptedCountSort">Accepted Count Rank</button>-->
+            </div>
+            <ul class="row">
+                <li class="col s6 m4 l4" v-for="user in sortedUsers" key="user.id">
+                    <div class="card">
+                        <div class="card-content">
+                            <span class="card-title" style="font-weight: bold; color: #32cd32;">{{ user.user_id }}</span>
+                            <p>Accepted: <span style="font-weight: bold;">{{ user.accepted_count }}</span>  ({{ user.accepted_count_rank }}th)</p>
+                            <p>Rated Point Sum: <span style="font-weight: bold;">{{ user.rated_point_sum }}pt</span>  ({{ user.rated_point_sum_rank }}th)</p>
+                        </div>
+                        <div class="card-action">
+                            <a :href="'https://atcoder.jp/users/' + user.user_id" target="_blank">AtCoder</a>
+                        </div>
+                        <div class="card-action">
+                            <a :href="'https://kenkoooo.com/atcoder/#/user/' + user.user_id" target="_blank">AtCoder Problems</a>
+                        </div>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </main>
+</body>
+<script src="https://cdn.jsdelivr.net/npm/vue"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+<script>
+    const KCT_USER_LIST = ['kazki', 'hide0903', 'Mcpu3', 'Minalin79', 'WA_TLE', 'TomyJPN'];
+    const app = new Vue({
+        el: '#app',
+        data: {
+            users: [],
+            results: [],
+        },
+        mounted: function() {
+            for(const user of KCT_USER_LIST) {
+                axios
+                    .get(`https://kenkoooo.com/atcoder/atcoder-api/v2/user_info?user=${user}`)
+                    .then((res) => {
+                        this.users.push(res.data);
+                    });
+
+                axios
+                    .get(`https://kenkoooo.com/atcoder/atcoder-api/results?user=${user}`)
+                    .then(res => {
+                        const ACs = res.data.filter(x => x.result === "AC");
+                        this.results.push(ACs);
+                    });
+            }
+        },
+        computed: {
+          sortedUsers: function() {
+              return this.users.sort((a, b) => {
+                  return a.rated_point_sum_rank - b.rated_point_sum_rank;
+              });
+          }
+        },
+        methods: {
+            RatedPointSort: function() {
+                this.users.sort((a, b) => {
+                    return a.rated_point_sum_rank - b.rated_point_sum_rank;
+                });
+            },
+            AcceptedCountSort: function() {
+              this.users.sort((a, b) => {
+                  return a.accepted_count_rank - b.accepted_count_rank;
+              });
+            },
+        },
+    });
+</script>
+</html>
